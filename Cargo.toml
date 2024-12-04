@@ -28,6 +28,8 @@ members = [
     "examples/httpserver",
     "examples/httpserver",
     "examples/shell",
+    "examples/loader",
+    "hello_app",
 ]
 
 [workspace.package]

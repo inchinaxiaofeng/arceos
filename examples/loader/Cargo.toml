@@ -1,0 +1,8 @@
+[package]
+name = "arceos-loader"
+version = "0.1.0"
+edition = "2021"
+authors = ["Marina Zhang <inchinaxiaofeng@gmail.com>"]
+
+[dependencies]
+axstd = { workspace = true, optional = true }
