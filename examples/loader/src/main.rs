@@ -5,6 +5,9 @@
 #[cfg(feature = "axstd")]
 use axstd::println;
 
+#[cfg(feature = "axstd")]
+use axstd::process::exit;
+
 /* 程序构建方法：
 ```
 # 构建ImageHeader的方式：image header的大小为24(x18)
@@ -40,6 +43,7 @@ mv empty_apps.bin apps.bin
 
 /// `bin`的开始位置
 const PLASH_START: usize = 0xffff_ffc0_2200_0000;
+
 /// 可执行代码的位置
 /// ```
 /// app running aspace
@@ -47,6 +51,31 @@ const PLASH_START: usize = 0xffff_ffc0_2200_0000;
 /// va_pa_offset: 0xffff_ffc0_0000_0000
 /// ```
 const RUN_START: usize = 0xffff_ffc0_8010_0000;
+
+const SYS_HELLO: usize = 1;
+const SYS_PUTCHAR: usize = 2;
+const SYS_TERMINATE: usize = 3;
+
+static mut ABI_TABLE: [usize; 16] = [0; 16];
+
+fn register_abi(num: usize, handle: usize) {
+    unsafe {
+        ABI_TABLE[num] = handle;
+    }
+}
+
+fn abi_hello() {
+    println!("[ABI:Hello] Hello, Apps!");
+}
+
+fn abi_putchar(c: char) {
+    println!("[ABI:Print] {c}");
+}
+
+fn abi_terminate() {
+    println!("Bye");
+    exit(0);
+}
 
 #[repr(C)]
 struct AppHeader {
@@ -64,6 +93,10 @@ struct ImageHeader {
 
 #[cfg_attr(feature = "axstd", no_mangle)]
 fn main() {
+    register_abi(SYS_HELLO, abi_hello as usize);
+    register_abi(SYS_PUTCHAR, abi_putchar as usize);
+    register_abi(SYS_TERMINATE, abi_terminate as usize);
+
     let image_ptr = PLASH_START as *const ImageHeader;
 
     // 读取头部信息
@@ -108,7 +141,7 @@ fn main() {
             core::arch::asm!("
             li      t2, {run_start}
             jalr    t2
-            j       .",
+            ",
             run_start = const RUN_START,
             )
         }
@@ -116,4 +149,27 @@ fn main() {
 
     println!("Loading complete!");
     println!("Load payload ok!");
+
+    println!("Execute app ...");
+    let arg0: u8 = b'A';
+
+    // execute app
+    unsafe {
+        core::arch::asm!("
+           li      t0, {abi_num}
+           slli    t0, t0, 3
+           la      t1, {abi_table}
+           add     t1, t1, t0
+           ld      t1, (t1)
+           jalr    t1
+           li      t2, {run_start}
+           jalr    t2
+           j       .",
+            run_start = const RUN_START,
+            abi_table = sym ABI_TABLE,
+            //abi_num = const SYS_HELLO,
+            abi_num = const SYS_TERMINATE,
+            in("a0") arg0,
+        )
+    }
 }
