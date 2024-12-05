@@ -1,5 +1,5 @@
 [package]
-name = "ebreak_app"
+name = "wfi_app"
 version = "0.1.0"
 edition = "2021"
 authors = ["Marina Zhang <inchinaxiaofeng@gmail.com>"]

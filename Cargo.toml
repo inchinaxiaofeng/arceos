@@ -29,8 +29,8 @@ members = [
     "examples/httpserver",
     "examples/shell",
     "examples/loader",
-    "hello_app",
-    "ebreak_app",
+    "myapps/nop_app",
+    "myapps/wfi_app",
 ]
 
 [workspace.package]
