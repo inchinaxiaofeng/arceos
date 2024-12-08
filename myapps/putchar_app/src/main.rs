@@ -63,7 +63,6 @@ fn putchar(c: char) {
 #[no_mangle]
 #[inline(never)]
 fn puts(s: &str) {
-    let mut i: u8 = 1;
     for c in s.chars() {
         putchar(c);
     }
@@ -73,7 +72,6 @@ fn puts(s: &str) {
 #[no_mangle]
 extern "C" fn _start() -> () {
     puts("Hello world!");
-    return;
 }
 
 use core::panic::PanicInfo;
