@@ -52,7 +52,6 @@ fn putchar(c: char) {
             ld      t2, 112(sp)
             ld      t1, 120(s0)
             ld      t0, 128(sp)
-
             addi    sp, sp, 128
             ",
             abi_num = const SYS_PUTCHAR,
