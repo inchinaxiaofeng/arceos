@@ -32,6 +32,7 @@ members = [
     "myapps/nop_app",
     "myapps/wfi_app",
     "myapps/ret_app",
+    "myapps/putchar_app",
 ]
 
 [workspace.package]
