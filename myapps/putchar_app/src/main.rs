@@ -71,7 +71,7 @@ fn puts(s: &str) {
 
 #[no_mangle]
 extern "C" fn _start() -> () {
-    puts("Hello world!");
+    // puts("Hello world!");
 }
 
 use core::panic::PanicInfo;

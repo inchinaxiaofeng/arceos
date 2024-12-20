@@ -1,23 +1,48 @@
 #![feature(asm_const)]
-#![cfg_attr(feature = "axstd", no_std)]
-#![cfg_attr(feature = "axstd", no_main)]
+#![no_std]
+#![no_main]
 
-#[cfg(feature = "axstd")]
-use axstd::println;
+use axlog::debug;
+use axstd::{print, println, process::exit};
+use core::{
+    cmp::min,
+    slice::{from_raw_parts, from_raw_parts_mut},
+};
 
-#[cfg(feature = "axstd")]
-use axstd::print;
+use elf::{endian::LittleEndian, ElfBytes};
 
 /// `bin`的开始位置
 const PLASH_START: usize = 0xffff_ffc0_2200_0000;
-
-/// 可执行代码的位置
-/// ```
-/// app running aspace
-/// SBI(0x80000000) -> App <- Kernel(0x80200000)
-/// va_pa_offset: 0xffff_ffc0_0000_0000
-/// ```
+const MAX_APP_SIZE: usize = 0x100000;
 const RUN_START: usize = 0xffff_ffc0_8010_0000;
+
+pub fn load_elf() -> u64 {
+    let elf_size = unsafe { *(PLASH_START as *const usize) };
+    debug!("ELF size: 0x{:x}", elf_size);
+    let elf_slice = unsafe { from_raw_parts((PLASH_START) as *const u8, elf_size) };
+    let elf: ElfBytes<'_, LittleEndian> =
+        ElfBytes::<LittleEndian>::minimal_parse(elf_slice).expect("Failed to parse ELF");
+    let elf_hdr = elf.ehdr;
+
+    let run_code = unsafe { from_raw_parts_mut(RUN_START as *mut u8, MAX_APP_SIZE) };
+
+    load_exec(&elf, elf_slice, run_code);
+    let entry = elf_hdr.e_entry;
+    debug!("Entry: 0x{:x}", entry);
+    return entry;
+}
+
+fn load_exec(elf: &ElfBytes<LittleEndian>, elf_slice: &[u8], run_code: &mut [u8]) {
+    let text_shdr = elf
+        .section_header_by_name(".text")
+        .expect("section table should be parseable")
+        .expect("elf should have a .text section");
+    let text_slice = elf_slice
+        .get(text_shdr.sh_offset as usize..)
+        .expect("text section should be in bounds");
+    let copy_size = min(run_code.len(), text_slice.len());
+    run_code[..copy_size].copy_from_slice(&text_slice[..copy_size]);
+}
 
 const SYS_HELLO: usize = 1;
 const SYS_PUTCHAR: usize = 2;
@@ -38,7 +63,6 @@ fn abi_hello() {
 }
 
 fn abi_putchar(c: char) {
-    //`println!("[ABI:Print] {c}");`
     print!("\x1b[34m");
     print!("{c}");
     print!("\x1b[0m");
@@ -49,8 +73,7 @@ fn abi_terminate() {
     println!("Bye");
     print!("\x1b[0m");
 
-    #[cfg(feature = "axstd")]
-    axstd::process::exit(0);
+    exit(0);
 }
 
 unsafe fn bye() -> () {
@@ -71,60 +94,16 @@ unsafe fn bye() -> () {
     )
 }
 
-/// 需要注意的是，由于我的操作系统与8字节对齐，所以在构建结构体的时候，就会要求8字节对齐。
-/// 注意在命令行中构建结构体时，要考虑到对齐的要求，
-/// 建议直接使用usize，而非core::mem::size_of::<>();来获得大小
-#[repr(C)]
-struct AppHeader {
-    magic_number: usize, // 用于识别 4bytes
-    app_size: usize,     // 应用程序大小 8bytes
-    entry_point: usize,  // 入口函数地址
-}
-
-#[cfg_attr(feature = "axstd", no_mangle)]
+#[no_mangle]
 fn main() {
     register_abi(SYS_HELLO, abi_hello as usize);
     register_abi(SYS_PUTCHAR, abi_putchar as usize);
     register_abi(SYS_TERMINATE, abi_terminate as usize);
 
-    let mut file_ptr = PLASH_START as usize;
-    // 不建议使用
-    let header_size = core::mem::size_of::<AppHeader>();
-    println!("Load payload ...");
+    let entry = load_elf();
 
-    loop {
-        println!("Loading applications...");
-        // Now, point to header.
-        let app_header_ptr = file_ptr as *const AppHeader;
-        let app_header = unsafe { &*app_header_ptr };
-        if app_header.magic_number != 0x1234567812345678 {
-            println!("Exiting loop. Bad magic number.");
-            break;
-        }
-
-        // Move to code 不建议使用
-        file_ptr += header_size;
-
-        // 根据头部信息获取每个应用程序的起始地址和大小
-        let apps_start = file_ptr as *const u8;
-        let apps_size = app_header.app_size;
-
-        println!(
-            "header {:?} start {:?} entry {:?} size {}",
-            app_header_ptr, apps_start, app_header.entry_point as *const u8, apps_size
-        );
-
-        // 读取应用程序代码
-        let app_code = unsafe { core::slice::from_raw_parts(apps_start, apps_size) };
-
-        let run_code = unsafe { core::slice::from_raw_parts_mut(RUN_START as *mut u8, apps_size) };
-        run_code.copy_from_slice(app_code);
-
-        println!("Execute app ...");
-
-        // Execute app
-        unsafe {
-            core::arch::asm!("
+    unsafe {
+        core::arch::asm!("
                 la      a7, {abi_table}
 
                 addi    sp, sp, -128
@@ -165,16 +144,10 @@ fn main() {
                 ld      t0, 128(sp)
                 addi    sp, sp, 128
                 ",
-                abi_table = sym ABI_TABLE,
-                in("t2") app_header.entry_point,
-            )
-        }
-
-        file_ptr += apps_size;
-        println!("Loading complete!");
+            abi_table = sym ABI_TABLE,
+            in("t2") entry,
+        )
     }
-
-    println!("Load payload ok!");
 
     unsafe {
         bye();

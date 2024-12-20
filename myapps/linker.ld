@@ -10,19 +10,20 @@ SECTIONS
   . = BASE_ADDRESS;
   start = .;
 
+  .rodata : {
+    srodata = .;
+    *(.rodata .rodata.*)
+    . = ALIGN(4K);
+    erodata = .;
+  }
+
+
   .text : {
     stext = .;
     *(.text.entry)
     *(.text .text.*)
     . = ALIGN(4K);
     etext = .;
-  }
-
-  .rodata : {
-    srodata = .;
-    *(.rodata .rodata.*)
-    . = ALIGN(4K);
-    erodata = .;
   }
 
   .data : {

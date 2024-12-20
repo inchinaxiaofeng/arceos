@@ -55,6 +55,7 @@ axfeat = { workspace = true }
 arceos_posix_api = { workspace = true }
 axio = "0.1"
 axerrno = "0.1"
+# cc = "1.2.4"
 
 [build-dependencies]
 bindgen ={ version = "0.69" }

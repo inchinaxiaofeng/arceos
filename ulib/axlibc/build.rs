@@ -1,4 +1,16 @@
 fn main() {
+    // Build C source files
+    //let mut build = cc::Build::new();
+    //build
+    //    .files(std::fs::read_dir("c").unwrap().map(|f| f.unwrap().path()).filter(|p| p.extension().map_or(false, |ext| ext == "c")))
+    //    .include("include")
+    //    .include("c")
+    //    .flag("-nostdinc")
+    //    .flag("-ffreestanding")
+    //    .opt_level(2)
+    //    .target("riscv64gc-unknown-none-elf")
+    //    .compile("axlibc");  // Output as libaxlibc.a
+
     fn gen_c_to_rust_bindings(in_file: &str, out_file: &str) {
         println!("cargo:rerun-if-changed={in_file}");
 
