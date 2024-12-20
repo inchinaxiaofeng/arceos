@@ -29,7 +29,6 @@ members = [
     "examples/httpserver",
     "examples/shell",
     "examples/loader",
-    "examples/simpleloader",
     "myapps/nop_app",
     "myapps/wfi_app",
     "myapps/ret_app",

@@ -10,8 +10,5 @@ asm(".section .sdata\n"
     "lla gp, __global_pointer$\n"
     ".option pop\n\t"
     "mv a0, sp\n"
-    ".weak _DYNAMIC\n"
-    ".hidden _DYNAMIC\n\t"
-    "lla a1, _DYNAMIC\n\t"
     "andi sp, sp, -16\n\t"
     "tail " START "_c");

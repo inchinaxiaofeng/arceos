@@ -16,7 +16,7 @@ LIBOBJS = $(DIRS)/puts.o \
 					$(DIRS)/abi.o
 CRTOBJS = $(DIRS)/crt1.o
 
-all: libmock.a $(CRTOBJS)
+all: libmock.a $(CRTOBJS) $(LIBOBJS)
 
 $(DIRS):
 	mkdir -p $@
@@ -27,10 +27,10 @@ $(CRTOBJS): | $(dir $(CRTOBJS))
 $(CRTOBJS): c/crt1.c include/crt_arch.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-%.o: %.c
+$(DIRS)/%.o: c/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-%.o: %.s
+$(DIRS)/%.o: c/%.s
 	$(AS) $(ASFLAGS) -o $@ $<
 
 libmock.a: $(LIBOBJS) $(CRTOBJS)

@@ -2,13 +2,11 @@
 #include <libc.h>
 
 unsigned long volatile abi_entry = 0;
-
 void terminate();
-hidden void _start_c(long *p)
+
+__attribute__((visibility("hidden"))) void _start_c(long *p)
 {
-    __asm__ volatile("mv %0, a7"       // 将 a7 的值移动到 abi_entry
-                     : "=r"(abi_entry) // 输出操作数
-    );
+    __asm__ volatile("mv %0, a7" : "=r"(abi_entry));
     int argc = p[0];
     char **argv = (void *)(p + 1);
 
@@ -16,11 +14,11 @@ hidden void _start_c(long *p)
 
     terminate();
 }
-#define SYS_TERMINATE 3
+
 void terminate()
 {
-    typedef void (*FnABI)();
+    typedef void (*Fn)();
     long *abi_ptr = (long *)(abi_entry + 8 * SYS_TERMINATE);
-    FnABI func = (FnABI)(*abi_ptr);
+    Fn func = (Fn)(*abi_ptr);
     func();
 }
