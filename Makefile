@@ -31,7 +31,7 @@ ARCH ?= riscv64
 PLATFORM ?=
 SMP ?= 1
 MODE ?= release
-LOG ?= debug
+LOG ?= warn
 V ?=
 
 # App options

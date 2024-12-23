@@ -9,16 +9,21 @@ OBJCOPY=$(PLATFORM)-objcopy
 CFLAGS = -ffreestanding -nostdlib -O2 -mcmodel=medany -I./include
 ASFLAGS = 
 LDFLAGS = -T link.ld
-DIRS = obj
+LIB_DIRS = lib
+OBJ_DIRS = obj
 
-LIBOBJS = $(DIRS)/puts.o \
-					$(DIRS)/putchar.o \
-					$(DIRS)/abi.o
-CRTOBJS = $(DIRS)/crt1.o
+LIB = $(LIB_DIRS)/libmock.a
+LIBOBJS = $(OBJ_DIRS)/puts.o \
+					$(OBJ_DIRS)/putchar.o \
+					$(OBJ_DIRS)/abi.o
+CRTOBJS = $(OBJ_DIRS)/crt1.o
 
-all: libmock.a $(CRTOBJS) $(LIBOBJS)
+all: $(LIB) $(CRTOBJS) $(LIBOBJS)
 
-$(DIRS):
+$(OBJ_DIRS):
+	mkdir -p $@
+
+$(LIB_DIRS):
 	mkdir -p $@
 
 $(LIBOBJS): | $(dir $(LIBOBJS))
@@ -27,13 +32,13 @@ $(CRTOBJS): | $(dir $(CRTOBJS))
 $(CRTOBJS): c/crt1.c include/crt_arch.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(DIRS)/%.o: c/%.c
+$(OBJ_DIRS)/%.o: c/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(DIRS)/%.o: c/%.s
+$(OBJ_DIRS)/%.o: c/%.s
 	$(AS) $(ASFLAGS) -o $@ $<
 
-libmock.a: $(LIBOBJS) $(CRTOBJS)
+$(LIB): $(LIBOBJS) $(CRTOBJS)
 	$(AR) rcs $@ $(LIBOBJS)
 
 .PHONYD: all
