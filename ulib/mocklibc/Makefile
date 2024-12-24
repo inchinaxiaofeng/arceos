@@ -16,6 +16,7 @@ LIB = $(LIB_DIRS)/libmock.a
 LIBOBJS = $(OBJ_DIRS)/puts.o \
 					$(OBJ_DIRS)/putchar.o \
 					$(OBJ_DIRS)/stdio/printf.o \
+					$(OBJ_DIRS)/time/time.o \
 					$(OBJ_DIRS)/abi.o
 
 CRTOBJS = $(OBJ_DIRS)/crt1.o
