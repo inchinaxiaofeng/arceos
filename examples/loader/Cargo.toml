@@ -5,6 +5,8 @@ edition = "2021"
 authors = ["Marina Zhang <inchinaxiaofeng@gmail.com>"]
 
 [dependencies]
-axstd = { workspace = true }
+axstd = { workspace = true, features = ["alloc"] }
 axlog = { workspace = true }
+axhal = { workspace = true }
 elf = { version = "0.7.4", default-features = false }
+printf-compat = { version = "0.1.1", default-features = false }

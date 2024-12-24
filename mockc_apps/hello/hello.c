@@ -9,5 +9,6 @@ int main()
     for (int i = 0; i < 100; i++) {
         c += i;
     }
+    printf("HEX: %0x", 0x55);
     return 0;
 }

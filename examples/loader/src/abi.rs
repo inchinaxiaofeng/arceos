@@ -1,9 +1,15 @@
-use axlog::info;
+use axhal::time::monotonic_time;
+use axlog::{debug, info};
 use axstd::{print, println, process::exit};
+use core::ffi::VaList;
+use printf_compat::output::display;
 
 const SYS_HELLO: usize = 1;
 const SYS_PUTCHAR: usize = 2;
 pub const SYS_TERMINATE: usize = 3;
+const SYS_TIMESPEC: usize = 4;
+// XXX: 可以在C中实现
+const SYS_PRINTF: usize = 5;
 
 pub static mut ABI_TABLE: [usize; 16] = [0; 16];
 
@@ -21,6 +27,10 @@ pub fn init_abis() {
     register_abi(SYS_PUTCHAR, abi_putchar as usize);
     info!("abi_exit: 0x{:x}", abi_terminate as usize);
     register_abi(SYS_TERMINATE, abi_terminate as usize);
+    info!("abi_timespec: 0x{:x}", abi_timespec as usize);
+    register_abi(SYS_TIMESPEC, abi_timespec as usize);
+    info!("c_printf: 0x{:x}", c_print as usize);
+    register_abi(SYS_PRINTF, c_print as usize);
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -55,22 +65,48 @@ fn register_abi(num: usize, handle: usize) {
     }
 }
 
+/// SYS_HELLO: 1
 fn abi_hello() {
     print!("\x1b[34m");
     println!("[ABI:Hello] Hello, Apps!");
     print!("\x1b[0m");
 }
 
+/// SYS_PUTCHAR: 2
 fn abi_putchar(c: char) {
     print!("\x1b[34m");
     print!("{c}");
     print!("\x1b[0m");
 }
 
+/// SYS_TERMINATE: 3
 fn abi_terminate() -> ! {
     print!("\x1b[34m");
     println!("Bye");
     print!("\x1b[0m");
 
     exit(0);
+}
+
+#[repr(C)]
+#[derive(Debug)]
+struct TimeSpec {
+    tv_sec: usize,
+    tv_nsec: usize,
+}
+/// SYS_TIMESPEC: 4
+fn abi_timespec(ts: *mut TimeSpec) {
+    unsafe {
+        let ts = &mut *ts;
+        let now = monotonic_time();
+        ts.tv_nsec = now.as_nanos() as usize;
+        ts.tv_sec = now.as_secs() as usize;
+        debug!("{:?}", ts);
+    }
+}
+
+/// SYS_PRINTF: 5
+unsafe extern "C" fn c_print(str_ptr: *const u8, args: VaList) {
+    let format = display(str_ptr, args);
+    println!("{}", format);
 }

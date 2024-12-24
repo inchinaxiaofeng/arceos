@@ -1,4 +1,5 @@
 #![feature(asm_const)]
+#![feature(c_variadic)]
 #![no_std]
 #![no_main]
 
@@ -7,12 +8,6 @@ use abi::{init_abis, ABI_TABLE, SYS_TERMINATE};
 
 mod load;
 use load::{load_elf, RUN_START};
-
-fn register_abi(num: usize, handle: usize) {
-    unsafe {
-        ABI_TABLE[num] = handle;
-    }
-}
 
 #[no_mangle]
 fn main() {

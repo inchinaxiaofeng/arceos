@@ -20,7 +20,7 @@ all: build
 build:
 	$(CC) --static -nostartfiles -nostdlib -I$(MOCK_LIBC)/include -ffreestanding -O2 -mcmodel=medany -c $(SRC_C)
 	#$(LD) $(SRC_O) -L$(MOCK_LIBC) -lmock -T$(ARCEOS_HOME)/mockc_apps/link.ld -o $(SRC)
-	$(LD) $(SRC_O) $(MOCK_LIBC)/obj/crt1.o $(MOCK_LIBC)/libmock.a -T$(ARCEOS_HOME)/mockc_apps/link.ld -o $(SRC)
+	$(LD) $(SRC_O) $(MOCK_LIBC)/obj/crt1.o $(MOCK_LIBC)/lib/libmock.a -T$(ARCEOS_HOME)/mockc_apps/link.ld -o $(SRC)
 	$(STRIP) -s $(SRC)
 	mv $(SRC) $(SRC_BIN)
 	#rust-objcopy --binary-architecture=riscv64 --strip-all -O binary $(SRC) ./$(SRC_BIN)
