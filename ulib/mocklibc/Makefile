@@ -20,6 +20,8 @@ LIBOBJS = $(OBJ_DIRS)/stdio/puts.o \
 					$(OBJ_DIRS)/stdio/snprintf.o \
 					$(OBJ_DIRS)/stdio/vsprintf.o \
 					$(OBJ_DIRS)/stdio/vsnprintf.o \
+					$(OBJ_DIRS)/stdio/scanf.o \
+					$(OBJ_DIRS)/stdio/vscanf.o \
 					$(OBJ_DIRS)/time/time.o \
 					$(OBJ_DIRS)/network/inet_pton.o \
 					$(OBJ_DIRS)/abi.o

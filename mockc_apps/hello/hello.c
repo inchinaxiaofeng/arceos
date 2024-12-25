@@ -18,9 +18,13 @@ int main()
         printf("GOOD!");
     }
     puts("[Test sprintf]");
-    char str[20];
+    char str1[20];
     int i;
-    sprintf(str, "%p", &i);
-    puts(str);
+    sprintf(str1, "%p", &i);
+    puts(str1);
+    puts("[Test scanf]");
+    char str2[20];
+    scanf(str2, "%s");
+    printf("read: %s", str2);
     return 0;
 }
