@@ -16,6 +16,7 @@ LIB = $(LIB_DIRS)/libmock.a
 LIBOBJS = $(OBJ_DIRS)/stdio/puts.o \
 					$(OBJ_DIRS)/stdio/putchar.o \
 					$(OBJ_DIRS)/stdio/printf.o \
+					$(OBJ_DIRS)/stdio/sprintf.o \
 					$(OBJ_DIRS)/time/time.o \
 					$(OBJ_DIRS)/network/inet_pton.o \
 					$(OBJ_DIRS)/abi.o

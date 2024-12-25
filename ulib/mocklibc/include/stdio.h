@@ -55,6 +55,7 @@ extern "C" {
 
 void putchar(char c);
 int printf(const char *__restrict, ...);
+int sprintf(char *__restrict, const char *__restrict, ...);
 void puts(char *s);
 void hello();
 void putchar(char c);

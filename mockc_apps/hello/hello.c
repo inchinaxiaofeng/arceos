@@ -3,7 +3,7 @@
 
 int main()
 {
-    puts("Hello world");
+    puts("[test puts] Hello world");
     int a = 1;
     int b = 2;
     int c = a + b;
@@ -17,5 +17,10 @@ int main()
     } else {
         printf("GOOD!");
     }
+    puts("[Test sprintf]");
+    char str[20];
+    int i;
+    sprintf(str, "%p", &i);
+    puts(str);
     return 0;
 }

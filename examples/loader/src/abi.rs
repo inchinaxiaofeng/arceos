@@ -1,15 +1,16 @@
 use axhal::time::monotonic_time;
 use axlog::{debug, info};
-use axstd::{print, println, process::exit};
-use core::ffi::VaList;
+use axstd::{print, println, process::exit, string::ToString};
+use core::{ffi::VaList, ptr::copy_nonoverlapping};
 use cty::{c_char, c_int};
-use printf_compat::{format, output, output::display};
+use printf_compat::output::display;
 
 const SYS_HELLO: usize = 1;
 const SYS_PUTCHAR: usize = 2;
 pub const SYS_TERMINATE: usize = 3;
 const SYS_TIMESPEC: usize = 4;
-const SYS_PRINTF: usize = 5;
+const SYS_VFPRINTF: usize = 5;
+const SYS_VSPRINTF: usize = 6;
 
 pub static mut ABI_TABLE: [usize; 16] = [0; 16];
 
@@ -31,7 +32,9 @@ pub fn init_abis() {
     info!("abi_timespec: 0x{:x}", abi_timespec as usize);
     register_abi(SYS_TIMESPEC, abi_timespec as usize);
     info!("vfprintf: 0x{:x}", vfprintf as usize);
-    register_abi(SYS_PRINTF, vfprintf as usize);
+    register_abi(SYS_VFPRINTF, vfprintf as usize);
+    info!("vsprintf: 0x{:x}", vsprintf as usize);
+    register_abi(SYS_VSPRINTF, vsprintf as usize);
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -66,21 +69,21 @@ fn register_abi(num: usize, handle: usize) {
     }
 }
 
-/// SYS_HELLO: 1
+/// `SYS_HELLO: 1`
 fn abi_hello() {
     print!("\x1b[34m");
     println!("[ABI:Hello] Hello, Apps!");
     print!("\x1b[0m");
 }
 
-/// SYS_PUTCHAR: 2
+/// `SYS_PUTCHAR: 2`
 fn abi_putchar(c: char) {
     print!("\x1b[34m");
     print!("{c}");
     print!("\x1b[0m");
 }
 
-/// SYS_TERMINATE: 3
+/// `SYS_TERMINATE: 3`
 fn abi_terminate() -> ! {
     print!("\x1b[34m");
     println!("Bye");
@@ -95,7 +98,8 @@ struct TimeSpec {
     tv_sec: usize,
     tv_nsec: usize,
 }
-/// SYS_TIMESPEC: 4
+
+/// `SYS_TIMESPEC: 4`
 fn abi_timespec(ts: *mut TimeSpec) {
     unsafe {
         let ts = &mut *ts;
@@ -106,7 +110,7 @@ fn abi_timespec(ts: *mut TimeSpec) {
     }
 }
 
-/// SYS_PRINTF: 5
+/// `SYS_VFPRINTF: 5`
 #[no_mangle]
 unsafe extern "C" fn vfprintf(str: *const c_char, args: VaList) -> c_int {
     let format = display(str, args);
@@ -114,16 +118,13 @@ unsafe extern "C" fn vfprintf(str: *const c_char, args: VaList) -> c_int {
     format.bytes_written()
 }
 
-/*
-```
-    SYS_SPRINTF: 6
-    unsafe extern "C" fn vsprintf(str: *mut u8, format: *const u8, va_list: VaList) -> i32 {
-        // 检查str是否为null
-        if str.is_null() {
-            return -1; // 返回一个错误代码
-        }
-        //    let formatted_string
-        //    let formated = display(format, va_list);
+/// `SYS_VSPRINTF: 6`
+unsafe extern "C" fn vsprintf(out: *mut c_char, str: *const c_char, args: VaList) -> c_int {
+    // 检查str是否为null
+    if str.is_null() {
+        return -1; // 返回一个错误代码
     }
-```
-*/
+    let format = display(str, args);
+    copy_nonoverlapping(format.to_string().as_ptr(), out, format.to_string().len());
+    format.bytes_written()
+}
