@@ -22,8 +22,7 @@ extern "C" {
 #define __NEED_va_list
 #endif
 
-// TODO: 添加
-// #include <bits/alltypes.h>
+#include <bits/alltypes.h>
 
 #if __cplusplus >= 201103L
 #define NULL nullptr
@@ -56,9 +55,14 @@ extern "C" {
 void putchar(char c);
 int printf(const char *__restrict, ...);
 int sprintf(char *__restrict, const char *__restrict, ...);
+int snprintf(char *__restrict, size_t, const char *__restrict, ...);
+int vsprintf(char *__restrict, const char *__restrict, __isoc_va_list);
+int vsnprintf(char *__restrict, size_t, const char *__restrict, __isoc_va_list);
 void puts(char *s);
 void hello();
 void putchar(char c);
+
+// TODO:
 
 #ifdef __cplusplus
 }

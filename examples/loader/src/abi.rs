@@ -2,15 +2,15 @@ use axhal::time::monotonic_time;
 use axlog::{debug, info};
 use axstd::{print, println, process::exit, string::ToString};
 use core::{ffi::VaList, ptr::copy_nonoverlapping};
-use cty::{c_char, c_int};
-use printf_compat::output::display;
+use cty::{c_char, c_int, size_t};
+use printf_compat::output::{self, display};
 
 const SYS_HELLO: usize = 1;
 const SYS_PUTCHAR: usize = 2;
 pub const SYS_TERMINATE: usize = 3;
 const SYS_TIMESPEC: usize = 4;
 const SYS_VFPRINTF: usize = 5;
-const SYS_VSPRINTF: usize = 6;
+const SYS_VSNPRINTF: usize = 6;
 
 pub static mut ABI_TABLE: [usize; 16] = [0; 16];
 
@@ -33,8 +33,8 @@ pub fn init_abis() {
     register_abi(SYS_TIMESPEC, abi_timespec as usize);
     info!("vfprintf: 0x{:x}", vfprintf as usize);
     register_abi(SYS_VFPRINTF, vfprintf as usize);
-    info!("vsprintf: 0x{:x}", vsprintf as usize);
-    register_abi(SYS_VSPRINTF, vsprintf as usize);
+    info!("vsprintf: 0x{:x}", vsnprintf as usize);
+    register_abi(SYS_VSNPRINTF, vsnprintf as usize);
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -118,13 +118,38 @@ unsafe extern "C" fn vfprintf(str: *const c_char, args: VaList) -> c_int {
     format.bytes_written()
 }
 
-/// `SYS_VSPRINTF: 6`
-unsafe extern "C" fn vsprintf(out: *mut c_char, str: *const c_char, args: VaList) -> c_int {
+// unsafe extern "C" fn vsprintf(out: *mut c_char, str: *const c_char, args: VaList) -> c_int {
+//     // 检查str是否为null
+//     if str.is_null() {
+//         return -1; // 返回一个错误代码
+//     }
+//     let format = display(str, args);
+//     copy_nonoverlapping(format.to_string().as_ptr(), out, format.to_string().len());
+//     format.bytes_written()
+// }
+
+/// `SYS_VSNPRINTF: 6`
+unsafe extern "C" fn vsnprintf(
+    out: *mut c_char,
+    maxlen: size_t,
+    str: *const c_char,
+    args: VaList,
+) -> c_int {
     // 检查str是否为null
     if str.is_null() {
         return -1; // 返回一个错误代码
     }
+    // 创建格式化字符串
     let format = display(str, args);
-    copy_nonoverlapping(format.to_string().as_ptr(), out, format.to_string().len());
-    format.bytes_written()
+    let output_string = format.to_string();
+    let bytes_written = output_string.len();
+
+    // 限制写入的字节数
+    let len_to_copy = bytes_written.min(maxlen - 1); // 保留一个字节用于Null终止符
+    copy_nonoverlapping(output_string.as_ptr(), out, len_to_copy);
+
+    // 添加null终止符
+    *out.add(len_to_copy) = 0;
+
+    bytes_written as c_int
 }

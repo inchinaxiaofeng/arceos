@@ -1,13 +1,12 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-// NOTE: C Std done.
-int sprintf(char *restrict s, const char *restrict fmt, ...)
+int snprintf(char *restrict s, size_t n, const char *restrict fmt, ...)
 {
     int ret;
     va_list ap;
     va_start(ap, fmt);
-    ret = vsprintf(s, fmt, ap);
+    ret = vsnprintf(s, n, fmt, ap);
     va_end(ap);
     return ret;
 }
