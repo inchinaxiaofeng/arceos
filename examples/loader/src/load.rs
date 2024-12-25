@@ -4,8 +4,6 @@ use core::{
     slice::{from_raw_parts, from_raw_parts_mut},
 };
 
-use axlog::debug;
-
 use axstd::println;
 
 use elf::{
@@ -43,7 +41,7 @@ pub fn load_elf() -> u64 {
         panic!("Invalid ELF type");
     }
 
-    // FIXME: 可能是出于编译的原因，在这里不进行打印或者任何一种使用的情况下，就不能正确执行。
+    //` FIXME:` 可能是出于编译的原因，在这里不进行打印或者任何一种使用的情况下，就不能正确执行。
     println!("Entry: 0x{:x}", entry);
     println!("ELF size: 0x{:x}", elf_size);
     return entry;
@@ -123,11 +121,6 @@ fn modify_plt(elf: &ElfBytes<LittleEndian>) {
             super::abi::AbiFunction::from_name(rela_name).expect("Failed to find abi function");
         unsafe {
             *((RUN_START as u64 + rela.r_offset) as *mut usize) = func.addr();
-            debug!(
-                "{} at : 0x{:x}",
-                rela_name,
-                *((RUN_START as u64 + rela.r_offset) as *const usize)
-            );
         }
     }
 }

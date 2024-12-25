@@ -6,6 +6,7 @@
 #define SYS_TERMINATE 3
 #define SYS_TIMESPEC  4
 #define SYS_PRINT     5
+#define SYS_MALLOC    6
 
 void abi_call(unsigned long entry, int abi_id, long arg);
 extern int main(int, char **);

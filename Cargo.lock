@@ -74,6 +74,7 @@ dependencies = [
  "axhal",
  "axlog",
  "axstd",
+ "cty",
  "elf",
  "printf-compat",
 ]

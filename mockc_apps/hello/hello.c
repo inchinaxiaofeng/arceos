@@ -12,6 +12,10 @@ int main()
         printf("current time:%ld", time);
         c += i;
     }
-    printf("HEX: %0x", 0x55);
+    if (0 == printf("HEX: %0x", 0x55)) {
+        printf("BAD!");
+    } else {
+        printf("GOOD!");
+    }
     return 0;
 }

@@ -13,10 +13,11 @@ LIB_DIRS = lib
 OBJ_DIRS = obj
 
 LIB = $(LIB_DIRS)/libmock.a
-LIBOBJS = $(OBJ_DIRS)/puts.o \
-					$(OBJ_DIRS)/putchar.o \
+LIBOBJS = $(OBJ_DIRS)/stdio/puts.o \
+					$(OBJ_DIRS)/stdio/putchar.o \
 					$(OBJ_DIRS)/stdio/printf.o \
 					$(OBJ_DIRS)/time/time.o \
+					$(OBJ_DIRS)/network/inet_pton.o \
 					$(OBJ_DIRS)/abi.o
 
 CRTOBJS = $(OBJ_DIRS)/crt1.o
@@ -45,7 +46,8 @@ $(LIB): $(LIBOBJS) $(CRTOBJS)
 	$(AR) rcs $@ $(LIBOBJS)
 
 clean:
-	rm $(OBJ_DIRS)/*.o
-	rm $(LIB_DIRS)/*.o
+	rm $(CRTOBJS)
+	rm $(LIBOBJS)
+	rm $(LIB_DIRS)/*
 
 .PHONYD: all clean

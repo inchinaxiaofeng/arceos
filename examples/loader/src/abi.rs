@@ -2,17 +2,18 @@ use axhal::time::monotonic_time;
 use axlog::{debug, info};
 use axstd::{print, println, process::exit};
 use core::ffi::VaList;
-use printf_compat::output::display;
+use cty::{c_char, c_int};
+use printf_compat::{format, output, output::display};
 
 const SYS_HELLO: usize = 1;
 const SYS_PUTCHAR: usize = 2;
 pub const SYS_TERMINATE: usize = 3;
 const SYS_TIMESPEC: usize = 4;
-// XXX: 可以在C中实现
 const SYS_PRINTF: usize = 5;
 
 pub static mut ABI_TABLE: [usize; 16] = [0; 16];
 
+// TODO: 将后来的函数添加进去
 // `map func name to func addr`
 pub static STR_TO_FUNC: [(&str, AbiFunction); 3] = [
     ("hello", AbiFunction::Hello(abi_hello)),
@@ -29,8 +30,8 @@ pub fn init_abis() {
     register_abi(SYS_TERMINATE, abi_terminate as usize);
     info!("abi_timespec: 0x{:x}", abi_timespec as usize);
     register_abi(SYS_TIMESPEC, abi_timespec as usize);
-    info!("c_printf: 0x{:x}", c_print as usize);
-    register_abi(SYS_PRINTF, c_print as usize);
+    info!("vfprintf: 0x{:x}", vfprintf as usize);
+    register_abi(SYS_PRINTF, vfprintf as usize);
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -106,7 +107,23 @@ fn abi_timespec(ts: *mut TimeSpec) {
 }
 
 /// SYS_PRINTF: 5
-unsafe extern "C" fn c_print(str_ptr: *const u8, args: VaList) {
-    let format = display(str_ptr, args);
-    println!("{}", format);
+#[no_mangle]
+unsafe extern "C" fn vfprintf(str: *const c_char, args: VaList) -> c_int {
+    let format = display(str, args);
+    println!("\x1b[34m{}\x1b[0m", format);
+    format.bytes_written()
 }
+
+/*
+```
+    SYS_SPRINTF: 6
+    unsafe extern "C" fn vsprintf(str: *mut u8, format: *const u8, va_list: VaList) -> i32 {
+        // 检查str是否为null
+        if str.is_null() {
+            return -1; // 返回一个错误代码
+        }
+        //    let formatted_string
+        //    let formated = display(format, va_list);
+    }
+```
+*/
