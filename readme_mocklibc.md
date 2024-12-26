@@ -8,3 +8,5 @@
 
 -   [x] endian.h
 -   [x] stdbool.h
+-   [x] stdint.h
+
