@@ -47,6 +47,8 @@ LIBOBJS = $(OBJ_DIRS)/stdio/puts.o \
 					$(OBJ_DIRS)/stdlib/ldiv.o \
 					$(OBJ_DIRS)/stdlib/llabs.o \
 					$(OBJ_DIRS)/stdlib/lldiv.o \
+					$(OBJ_DIRS)/stdlib/ecvt.o \
+					$(OBJ_DIRS)/stdlib/gcvt.o \
 					$(OBJ_DIRS)/time/time.o \
 					$(OBJ_DIRS)/network/inet_pton.o \
 					$(OBJ_DIRS)/abi.o
