@@ -57,13 +57,13 @@ int sprintf(char *__restrict, const char *__restrict, ...);
 int snprintf(char *__restrict, size_t, const char *__restrict, ...);
 int vsprintf(char *__restrict, const char *__restrict, __isoc_va_list);
 int vsnprintf(char *__restrict, size_t, const char *__restrict, __isoc_va_list);
+int scanf(const char *__restrict, ...);
+int vscanf(const char *__restrict, __isoc_va_list);
 void puts(char *s);
 void hello();
 void putchar(char c);
 
 // TODO:
-int scanf(const char *__restrict, ...);
-int vscanf(const char *__restrict, __isoc_va_list);
 
 #ifdef __cplusplus
 }

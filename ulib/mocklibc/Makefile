@@ -22,6 +22,20 @@ LIBOBJS = $(OBJ_DIRS)/stdio/puts.o \
 					$(OBJ_DIRS)/stdio/vsnprintf.o \
 					$(OBJ_DIRS)/stdio/scanf.o \
 					$(OBJ_DIRS)/stdio/vscanf.o \
+					$(OBJ_DIRS)/ctype/isalnum.o \
+					$(OBJ_DIRS)/ctype/isalpha.o \
+					$(OBJ_DIRS)/ctype/isblank.o \
+					$(OBJ_DIRS)/ctype/iscntrl.o \
+					$(OBJ_DIRS)/ctype/isdigit.o \
+					$(OBJ_DIRS)/ctype/isgraph.o \
+					$(OBJ_DIRS)/ctype/islower.o \
+					$(OBJ_DIRS)/ctype/isprint.o \
+					$(OBJ_DIRS)/ctype/ispunct.o \
+					$(OBJ_DIRS)/ctype/isspace.o \
+					$(OBJ_DIRS)/ctype/isupper.o \
+					$(OBJ_DIRS)/ctype/isxdigit.o \
+					$(OBJ_DIRS)/ctype/tolower.o \
+					$(OBJ_DIRS)/ctype/toupper.o \
 					$(OBJ_DIRS)/time/time.o \
 					$(OBJ_DIRS)/network/inet_pton.o \
 					$(OBJ_DIRS)/abi.o

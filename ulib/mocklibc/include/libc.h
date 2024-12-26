@@ -7,7 +7,7 @@
 #define SYS_TIMESPEC  4
 #define SYS_VFPRINTF  5
 #define SYS_VSNPRINTF 6
-#define SYS_VFSCANF   7
+#define SYS_VSCANF    7
 
 void abi_call(unsigned long entry, int abi_id, long arg);
 extern int main(int, char **);

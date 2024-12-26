@@ -16,7 +16,7 @@ pub const SYS_TERMINATE: usize = 3;
 const SYS_TIMESPEC: usize = 4;
 const SYS_VFPRINTF: usize = 5;
 const SYS_VSNPRINTF: usize = 6;
-const SYS_VFSCANF: usize = 7;
+const SYS_VSCANF: usize = 7;
 
 pub static mut ABI_TABLE: [usize; 16] = [0; 16];
 
@@ -41,8 +41,8 @@ pub fn init_abis() {
     register_abi(SYS_VFPRINTF, vfprintf as usize);
     info!("vsprintf: 0x{:x}", vsnprintf as usize);
     register_abi(SYS_VSNPRINTF, vsnprintf as usize);
-    info!("vfscanf: 0x{:x}", vfscanf as usize);
-    register_abi(SYS_VFSCANF, vfscanf as usize);
+    info!("vscanf: 0x{:x}", vscanf as usize);
+    register_abi(SYS_VSCANF, vscanf as usize);
 }
 
 // TODO: 将后来的函数添加进去
@@ -153,16 +153,16 @@ unsafe extern "C" fn vsnprintf(
     bytes_written as c_int
 }
 
-/// `SYS_VFSCANF: 7`
-unsafe extern "C" fn vfscanf(str: *mut c_char, args: VaList) -> c_int {
+/// `SYS_VSCANF: 7`
+unsafe extern "C" fn vscanf(str: *mut c_char, args: VaList) -> c_int {
+    println!("DONT USE THIS");
+    return -1;
     if str.is_null() {
         return -1;
     }
 
     let mut output: String = String::new();
-    stdin()
-        .read_line(&mut output)
-        .expect("Failed to real line!");
+    let bytes_read = stdin().read_line(&mut output).unwrap_or(0);
 
     let output_string = output.to_string();
 
