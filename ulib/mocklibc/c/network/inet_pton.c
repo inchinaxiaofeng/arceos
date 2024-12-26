@@ -1,3 +1,4 @@
+// NOTE: `Std C impl based on musl 1.2.5`
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <errno.h>

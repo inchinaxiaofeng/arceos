@@ -1,7 +1,7 @@
+// NOTE: `Std C impl based on musl 1.2.5`
 #include <stdarg.h>
 #include <stdio.h>
 
-// NOTE: C Std done.
 int sprintf(char *restrict s, const char *restrict fmt, ...)
 {
     int ret;

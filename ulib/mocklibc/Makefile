@@ -36,6 +36,8 @@ LIBOBJS = $(OBJ_DIRS)/stdio/puts.o \
 					$(OBJ_DIRS)/ctype/isxdigit.o \
 					$(OBJ_DIRS)/ctype/tolower.o \
 					$(OBJ_DIRS)/ctype/toupper.o \
+					$(OBJ_DIRS)/ctype/isascii.o \
+					$(OBJ_DIRS)/ctype/toascii.o \
 					$(OBJ_DIRS)/time/time.o \
 					$(OBJ_DIRS)/network/inet_pton.o \
 					$(OBJ_DIRS)/abi.o
