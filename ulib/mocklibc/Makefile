@@ -38,6 +38,15 @@ LIBOBJS = $(OBJ_DIRS)/stdio/puts.o \
 					$(OBJ_DIRS)/ctype/toupper.o \
 					$(OBJ_DIRS)/ctype/isascii.o \
 					$(OBJ_DIRS)/ctype/toascii.o \
+					$(OBJ_DIRS)/stdlib/abs.o \
+					$(OBJ_DIRS)/stdlib/atoi.o \
+					$(OBJ_DIRS)/stdlib/atol.o \
+					$(OBJ_DIRS)/stdlib/atoll.o \
+					$(OBJ_DIRS)/stdlib/div.o \
+					$(OBJ_DIRS)/stdlib/labs.o \
+					$(OBJ_DIRS)/stdlib/ldiv.o \
+					$(OBJ_DIRS)/stdlib/llabs.o \
+					$(OBJ_DIRS)/stdlib/lldiv.o \
 					$(OBJ_DIRS)/time/time.o \
 					$(OBJ_DIRS)/network/inet_pton.o \
 					$(OBJ_DIRS)/abi.o
