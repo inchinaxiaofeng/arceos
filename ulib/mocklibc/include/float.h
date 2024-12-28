@@ -43,7 +43,7 @@ int __flt_rounds(void);
 #define LDBL_HAS_SUBNORM 1
 #define LDBL_DECIMAL_DIG DECIMAL_DIG
 
-// TODO: #include <bits/float.h>
+#include <bits/float.h>
 
 #ifdef __cplusplus
 }
