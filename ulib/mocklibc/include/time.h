@@ -19,7 +19,7 @@ extern "C" {
 #define __NEED_time_t
 #define __NEED_clock_t
 #define __NEED_struct_timespec
-//
+
 #if defined(_POSIX_SOURCE) || defined(_POSIX_C_SOURCE) || defined(_XOPEN_SOURCE) || \
     defined(_GNU_SOURCE) || defined(_BSD_SOURCE)
 #define __NEED_clockid_t
@@ -28,22 +28,12 @@ extern "C" {
 #define __NEED_locale_t
 #endif
 
-// TODO: Add this include
-// #include <bits/alltypes.h>
+#include <bits/alltypes.h>
 
 #if defined(_BSD_SOURCE) || defined(_GNU_SOURCE)
 #define __tm_gmtoff tm_gmtoff
 #define __tm_zone   tm_zone
 #endif
-
-// XXX: 临时定义变量如下：
-typedef long clock_t;
-typedef long time_t;
-typedef long suseconds_t;
-struct timespec {
-    time_t tv_sec;
-    long tv_nsec;
-};
 
 struct tm {
     int tm_sec;

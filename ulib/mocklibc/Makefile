@@ -6,7 +6,7 @@ AR=$(PLATFORM)-ar
 STRIP=$(PLATFORM)-strip
 OBJCOPY=$(PLATFORM)-objcopy
 
-CFLAGS = -ffreestanding -nostdlib -O2 -mcmodel=medany -I./include -I./c/internal/ -I./c/math/ # -I./c/include/
+CFLAGS = -ffreestanding -nostdlib -O2 -mcmodel=medany -I./include -I./c/internal/ -I./c/math/ -I./arch/riscv64/ # -I./c/include/
 ASFLAGS = 
 LDFLAGS = -T link.ld
 LIB_DIRS = lib

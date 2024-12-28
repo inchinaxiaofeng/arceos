@@ -114,21 +114,21 @@ int __signbitl(long double);
         return !isunordered(__x, __y) && __x op __y;  \
     }
 
-// __ISREL_DEF(lessf, <, float_t)
-// __ISREL_DEF(less, <, double_t)
-// __ISREL_DEF(lessl, <, long double)
-// __ISREL_DEF(lessequalf, <=, float_t)
-// __ISREL_DEF(lessequal, <=, double_t)
-// __ISREL_DEF(lessequall, <=, long double)
-// __ISREL_DEF(lessgreaterf, !=, float_t)
-// __ISREL_DEF(lessgreater, !=, double_t)
-// __ISREL_DEF(lessgreaterl, !=, long double)
-// __ISREL_DEF(greaterf, >, float_t)
-// __ISREL_DEF(greater, >, double_t)
-// __ISREL_DEF(greaterl, >, long double)
-// __ISREL_DEF(greaterequalf, >=, float_t)
-// __ISREL_DEF(greaterequal, >=, double_t)
-// __ISREL_DEF(greaterequall, >=, long double)
+__ISREL_DEF(lessf, <, float_t)
+__ISREL_DEF(less, <, double_t)
+__ISREL_DEF(lessl, <, long double)
+__ISREL_DEF(lessequalf, <=, float_t)
+__ISREL_DEF(lessequal, <=, double_t)
+__ISREL_DEF(lessequall, <=, long double)
+__ISREL_DEF(lessgreaterf, !=, float_t)
+__ISREL_DEF(lessgreater, !=, double_t)
+__ISREL_DEF(lessgreaterl, !=, long double)
+__ISREL_DEF(greaterf, >, float_t)
+__ISREL_DEF(greater, >, double_t)
+__ISREL_DEF(greaterl, >, long double)
+__ISREL_DEF(greaterequalf, >=, float_t)
+__ISREL_DEF(greaterequal, >=, double_t)
+__ISREL_DEF(greaterequall, >=, long double)
 
 #define __tg_pred_2(x, y, p)                            \
     (sizeof((x) + (y)) == sizeof(float)    ? p##f(x, y) \
@@ -193,9 +193,9 @@ double erf(double);
 float erff(float);
 long double erfl(long double);
 
-// double erfc(double);
-// float erfcf(float);
-// long double erfcl(long double);
+double erfc(double);
+float erfcf(float);
+long double erfcl(long double);
 
 double exp(double);
 float expf(float);
@@ -221,25 +221,25 @@ double floor(double);
 float floorf(float);
 long double floorl(long double);
 
-// double fma(double, double, double);
-// float fmaf(float, float, float);
-// long double fmal(long double, long double, long double);
-//
-// double fmax(double, double);
-// float fmaxf(float, float);
-// long double fmaxl(long double, long double);
-//
-// double fmin(double, double);
-// float fminf(float, float);
-// long double fminl(long double, long double);
-//
-// double fmod(double, double);
-// float fmodf(float, float);
-// long double fmodl(long double, long double);
-//
-// double frexp(double, int *);
-// float frexpf(float, int *);
-// long double frexpl(long double, int *);
+double fma(double, double, double);
+float fmaf(float, float, float);
+long double fmal(long double, long double, long double);
+
+double fmax(double, double);
+float fmaxf(float, float);
+long double fmaxl(long double, long double);
+
+double fmin(double, double);
+float fminf(float, float);
+long double fminl(long double, long double);
+
+double fmod(double, double);
+float fmodf(float, float);
+long double fmodl(long double, long double);
+
+double frexp(double, int *);
+float frexpf(float, int *);
+long double frexpl(long double, int *);
 
 double hypot(double, double);
 float hypotf(float, float);
@@ -255,7 +255,7 @@ long double ldexpl(long double, int);
 
 double lgamma(double);
 float lgammaf(float);
-// long double lgammal(long double);
+long double lgammal(long double);
 
 long long llrint(double);
 long long llrintf(float);
@@ -351,7 +351,7 @@ long double sinhl(long double);
 
 double sqrt(double);
 float sqrtf(float);
-// long double sqrtl(long double);
+long double sqrtl(long double);
 
 double tan(double);
 float tanf(float);
@@ -428,7 +428,7 @@ float ynf(int, float);
 #endif
 
 #ifdef _GNU_SOURCE
-// long double lgammal_r(long double, int *);
+long double lgammal_r(long double, int *);
 
 void sincos(double, double *, double *);
 void sincosf(float, float *, float *);
@@ -436,11 +436,11 @@ void sincosl(long double, long double *, long double *);
 
 double exp10(double);
 float exp10f(float);
-// long double exp10l(long double);
+long double exp10l(long double);
 
 double pow10(double);
 float pow10f(float);
-// long double pow10l(long double);
+long double pow10l(long double);
 #endif
 
 #ifdef __cplusplus

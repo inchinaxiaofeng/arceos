@@ -10,3 +10,13 @@
 -   [x] stdbool.h
 -   [x] stdint.h
 -   [ ] features.h(融合了src/include/features.h)
+-   [x] ctype.h
+-   [x] float.h
+-   [x] limits.h
+-   [x] stdarg.h
+-   [x] stdbool.h
+-   [x] stdint.h
+-   [ ] stdlib.h
+-   [ ] time.h
+-   [ ] math.h
+-   [ ] 

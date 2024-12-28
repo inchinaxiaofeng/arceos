@@ -7,10 +7,7 @@ extern "C" {
 
 #define __NEED_va_list
 
-// TODO: Add this include
-// #include <bits/alltypes.h>
-// TODO: Remove me
-typedef __builtin_va_list va_list;
+#include <bits/alltypes.h>
 
 #define va_start(v, l) __builtin_va_start(v, l)
 #define va_end(v)      __builtin_va_end(v)
