@@ -1,3 +1,4 @@
+// NOTE: `Std C impl based on musl 1.2.5`
 #include <ctype.h>
 
 int tolower(int c)
@@ -7,9 +8,9 @@ int tolower(int c)
     return c;
 }
 
-// int __tolower_l(int c, locale_t l)
-// {
-//     return tolower(c);
-// }
+int __tolower_l(int c, locale_t l)
+{
+    return tolower(c);
+}
 
-// TODO: weak_alias(__tolower_l, tolower_l);
+weak_alias(__tolower_l, tolower_l);

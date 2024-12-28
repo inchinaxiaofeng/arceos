@@ -1,3 +1,4 @@
+// NOTE: `Std C impl based on musl 1.2.5`
 #include <ctype.h>
 
 int toupper(int c)
@@ -7,9 +8,9 @@ int toupper(int c)
     return c;
 }
 
-// int __toupper_l(int c, locale_t l)
-// {
-//     return toupper(c);
-// }
+int __toupper_l(int c, locale_t l)
+{
+    return toupper(c);
+}
 
-// TODO: weak_alias(__toupper_l, toupper_l);
+weak_alias(__toupper_l, toupper_l);

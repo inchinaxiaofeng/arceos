@@ -1,3 +1,4 @@
+// NOTE: `Std C impl based on musl 1.2.5`
 #include <ctype.h>
 #undef isgraph
 
@@ -6,9 +7,9 @@ int isgraph(int c)
     return (unsigned)c - 0x21 < 0x5e;
 }
 
-// int __isgraph_l(int c, locale_t l)
-// {
-//     return isgraph(c);
-// }
+int __isgraph_l(int c, locale_t l)
+{
+    return isgraph(c);
+}
 
-// TODO: weak_alias(__isgraph_l, isgraph_l);
+weak_alias(__isgraph_l, isgraph_l);

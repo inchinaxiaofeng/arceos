@@ -1,3 +1,4 @@
+// NOTE: `Std C impl based on musl 1.2.5`
 #include <ctype.h>
 #undef isprint
 
@@ -6,9 +7,9 @@ int isprint(int c)
     return (unsigned)c - 0x20 < 0x5f;
 }
 
-// int __isprint_l(int c, locale_t l)
-// {
-//     return isprint(c);
-// }
+int __isprint_l(int c, locale_t l)
+{
+    return isprint(c);
+}
 
-// TODO: weak_alias(__isprint_l, isprint_l);
+weak_alias(__isprint_l, isprint_l);

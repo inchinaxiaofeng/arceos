@@ -1,3 +1,4 @@
+// NOTE: `Std C impl based on musl 1.2.5`
 #include <ctype.h>
 #undef isspace
 
@@ -6,9 +7,9 @@ int isspace(int c)
     return c == ' ' || (unsigned)c - '\t' < 5;
 }
 
-// int __isspace_l(int c, locale_t l)
-// {
-//     return isspace(c);
-// }
+int __isspace_l(int c, locale_t l)
+{
+    return isspace(c);
+}
 
-// TODO: weak_alias(__isspace_l, isspace_l);
+weak_alias(__isspace_l, isspace_l);
