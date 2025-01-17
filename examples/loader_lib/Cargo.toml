@@ -1,0 +1,13 @@
+[package]
+name = "arceos-loader_lib"
+version = "0.1.0"
+edition = "2021"
+authors = ["Marina Zhang <inchinaxiaofeng@gmail.com>"]
+
+[dependencies]
+axstd = { workspace = true, features = ["alloc"] }
+axlog = { workspace = true }
+axhal = { workspace = true }
+elf = { version = "0.7.4", default-features = false }
+printf-compat = { version = "0.1.1", default-features = false }
+cty = "0.2.2"
