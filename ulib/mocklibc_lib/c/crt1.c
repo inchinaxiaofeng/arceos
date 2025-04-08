@@ -1,25 +1,32 @@
 #include "crt_arch.h"
 #include <mocklibc.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 unsigned long volatile abi_entry = 0;
 
+extern void __entry(long *p);
+extern char **environ;
+
 __attribute__((visibility("hidden"))) void _start(long *p)
 {
-    __asm__ volatile("mv %0, a7" : "=r"(abi_entry));
-    int argc = p[0];
-    char **argv = (void *)(p + 1);
+    asm volatile("mv %0, a7" : "=r"(abi_entry));
 
-    main(argc, argv);
+    pthread_t musl_start;
+    pthread_create(&musl_start, NULL, __entry, p);
+    pthread_join(musl_start, NULL);
+    // TODO :
+    // 在static的条件下，将entry实装（就是另一个版本的start,或者在static的条件下条件编译这个函数，提供不同的实现）
+    // __entry(p);
 }
 
-/// void mock_start_main(long *p)
-void __libc_start_main(long *p)
+int __libc_start_main(int (*main)(), int argc, char **argv, void (*_init)(), void (*_fini)(),
+                      void (*rtld_fini)())
 {
-    __asm__ volatile("mv %0, a7" : "=r"(abi_entry));
-    int argc = p[0];
-    char **argv = (void *)(p + 1);
-
-    main(argc, argv);
+    printf("main entry %p, argc @%p=%d, argv @%p\n", main, &argc, argc, argv);
+    main(argc, argv, environ);
 }
 
 void terminate()

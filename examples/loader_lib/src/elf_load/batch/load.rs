@@ -118,7 +118,7 @@ pub fn load_segment(
 /// * `lib_start` - `LIB` 在 `MEM` 中的入口地址
 ///
 /// # 返回值
-/// 返回 `main` 函数入口地址
+/// (app entry, 函数入口地址(main entry))
 pub fn load_app_dyn(
     app_elf_slice: &[u8],
     app_elf: &ElfBytes<LittleEndian>,
@@ -127,8 +127,8 @@ pub fn load_app_dyn(
     app_start: usize,
     lib_elf: &ElfBytes<LittleEndian>,
     lib_start: usize,
-    entry_name: &str,
-) -> usize {
+    main_name: &str,
+) -> (usize, usize) {
     debug!("Load app to mem space");
     load_dyn(&app_elf, app_elf_slice, app_code, 0);
 
@@ -136,7 +136,10 @@ pub fn load_app_dyn(
     modify_app(&app_elf, app_start, &lib_elf, lib_start);
 
     info!("App elf size: 0x{:x}", app_size);
-    find_app_main_entry(&app_elf, app_start, entry_name)
+    (
+        app_start + app_elf.ehdr.e_entry as usize,
+        find_app_func_entry(&app_elf, app_start, main_name),
+    )
 }
 
 /// 加载 `LIB` 库
@@ -154,12 +157,14 @@ pub fn load_lib(
     lib_code: &mut [u8],
     lib_elf: &ElfBytes<LittleEndian>,
     lib_start: usize,
+    run_code_entry_name: &str,
+    run_code_main_name: &str,
 ) -> usize {
     debug!("Load lib to mem space");
     load_dyn(&lib_elf, lib_elf_slice, lib_code, 0);
 
     debug!("Modify lib to mem space");
-    modify_lib(&lib_elf, lib_start);
+    modify_lib(&lib_elf, lib_start, run_code_entry_name, run_code_main_name);
 
     // 正常情况下，应该是由 `APP` 内的 `start` 函数开始执行，
     // 但是我们在 `Batch Mode` 下需要重新写 `start` 函数，因此从这里开始
@@ -171,13 +176,13 @@ pub fn load_lib(
 /// * `elf` - `APP` 基于在 `PLASH` 的入口地址和大小，获得其切片，转化为 `ElfBytes`
 /// * `app_start` - `APP` 在 `MEM` 中的入口地址
 /// * `entry_name` - 待查询的入口地址，通常为 `main`
-fn find_app_main_entry(elf: &ElfBytes<LittleEndian>, app_start: usize, entry_name: &str) -> usize {
+fn find_app_func_entry(elf: &ElfBytes<LittleEndian>, app_start: usize, func_name: &str) -> usize {
     let (dynsym_table, dynstr_table) = elf
         .dynamic_symbol_table()
         .expect("Failed to parse dynamic symbol table")
         .expect("ELF should have a dynamic symbol table");
 
-    debug!("Finding main entry");
+    debug!("Finding func entry {}", func_name);
 
     let sym = dynsym_table
         .iter()
@@ -185,10 +190,10 @@ fn find_app_main_entry(elf: &ElfBytes<LittleEndian>, app_start: usize, entry_nam
             let name = dynstr_table
                 .get(sym.st_name as usize)
                 .expect("Failed to get name in dynstr_table");
-            name == entry_name
+            name == func_name
         })
         .expect("Failed to find symbol in APP dynamic symbol table");
-    sym.st_value.eq(&0).then(|| panic!("Bad main entry"));
+    sym.st_value.eq(&0).then(|| panic!("Bad func entry"));
     app_start + sym.st_value as usize
 }
 
@@ -197,7 +202,12 @@ fn find_app_main_entry(elf: &ElfBytes<LittleEndian>, app_start: usize, entry_nam
 /// # 参数
 /// * `elf` -
 /// * `lib_start` - `LIB` 在内存中地址
-fn modify_lib(elf: &ElfBytes<LittleEndian>, lib_start: usize) {
+fn modify_lib(
+    elf: &ElfBytes<LittleEndian>,
+    lib_start: usize,
+    run_code_entry_name: &str,
+    run_code_main_name: &str,
+) {
     let (dynsym_table, dynstr_table) = elf
         .dynamic_symbol_table()
         .expect("Failed to parse dynamic symbol table")
@@ -212,8 +222,6 @@ fn modify_lib(elf: &ElfBytes<LittleEndian>, lib_start: usize) {
         .section_data_as_relas(&rela_plt_shdr)
         .expect("Failed to parse .rela.plt section");
 
-    let run_code_entry_name = "main";
-
     for rela_plt in rela_plts {
         let sym = dynsym_table.get(rela_plt.r_sym as usize).expect(&format!(
             "Failed to get symbol for index: {}",
@@ -227,8 +235,8 @@ fn modify_lib(elf: &ElfBytes<LittleEndian>, lib_start: usize) {
         match rela_plt.r_type {
             // Indicates the symbol associated with a `PLT` entry: `S`
             R_RISCV_JUMP_SLOT => {
-                // 在遇到 `main` 函数的时候，跳过。
-                if rela_name != run_code_entry_name {
+                // 在遇到特殊函数的时候，跳过。
+                if rela_name != run_code_entry_name && rela_name != run_code_main_name {
                     let relative_offset = lib_start + rela_plt.r_offset as usize;
                     let new_value = lib_start + sym.st_value as usize;
                     debug!(
@@ -277,14 +285,17 @@ fn modify_lib(elf: &ElfBytes<LittleEndian>, lib_start: usize) {
             }
             // 64-bit relocation: `S + A`.
             R_RISCV_64 => {
-                let relative_offset = lib_start + rela_dyn.r_offset as usize;
-                let new_value = lib_start + sym.st_value as usize;
-                debug!(
-                    "[Lib-rela.dyn R_RISCV_64] @0x{:x}=0x{:x} name {}",
-                    relative_offset, new_value, rela_name,
-                );
-                sym.st_value.eq(&0).then(|| panic!("Bad st_value"));
-                unsafe { *(relative_offset as *mut usize) = new_value };
+                // 在遇到特殊符号的时候，跳过。
+                if rela_name != run_code_entry_name && rela_name != run_code_main_name {
+                    let relative_offset = lib_start + rela_dyn.r_offset as usize;
+                    let new_value = lib_start + sym.st_value as usize;
+                    debug!(
+                        "[Lib-rela.dyn R_RISCV_64] @0x{:x}=0x{:x} name {}",
+                        relative_offset, new_value, rela_name,
+                    );
+                    sym.st_value.eq(&0).then(|| panic!("Bad st_value"));
+                    unsafe { *(relative_offset as *mut usize) = new_value };
+                }
             }
             _ => {
                 panic!("Unknown relocation type: {}", rela_dyn.r_type);
@@ -293,13 +304,78 @@ fn modify_lib(elf: &ElfBytes<LittleEndian>, lib_start: usize) {
     }
 }
 
-/// 修改 `Lib` 库中的 `main` 的入口地址
+/// 修改 `Lib` 库中的 指定符号 的地址
 ///
 /// # 参数
 /// * `elf` - `LIB` 的 `ElfBytes`
 /// * `lib_start` - `LIB` 在内存中地址
-/// * `main_entry` - 对应的 `APP` 库的 `main` 函数入口地址
-pub fn modify_lib_main(elf: &ElfBytes<LittleEndian>, lib_start: usize, main_entry: usize) {
+/// * `new_value` - 需要修改的指定符号地址
+/// * `name` - 需要修改的指定符号的名字
+pub fn modify_lib_dyn(
+    elf: &ElfBytes<LittleEndian>,
+    lib_start: usize,
+    new_value: usize,
+    name: &str,
+) -> Option<()> {
+    let (dynsym_table, dynstr_table) = elf
+        .dynamic_symbol_table()
+        .expect("Failed to parse dynamic symbol table")
+        .expect("ELF should have a dynamic symbol table");
+
+    info!("Modify `main` function entry in lib");
+    // 获取 `.rela.plt` section
+    let rela_dyn_shdr = elf
+        .section_header_by_name(".rela.dyn")
+        .expect("section table should be parseable")
+        .expect("elf should have a .rela.dyn section");
+    // 解析 `.rela.plt` 中的重定位条目
+    let rela_dyns = elf
+        .section_data_as_relas(&rela_dyn_shdr)
+        .expect("Failed to parse .rela.plt section");
+
+    let rela_dyn = rela_dyns.into_iter().find(|rela_dyn| {
+        let sym = dynsym_table.get(rela_dyn.r_sym as usize).expect(&format!(
+            "Failed to get symbol for index: {}",
+            rela_dyn.r_sym
+        ));
+        let rela_name = dynstr_table.get(sym.st_name as usize).expect(&format!(
+            "Failed to get symbol name for index: {}",
+            sym.st_name
+        ));
+
+        name == rela_name
+    })?; // 如果找不到，就在这里返回一个None
+
+    match rela_dyn.r_type {
+        // Indicates the symbol associated with a `PLT` entry: `S`
+        R_RISCV_64 => {
+            let relative_offset = lib_start + rela_dyn.r_offset as usize;
+            info!(
+                "[Lib-rela.plt dyn:{}] @0x{:x}=0x{:x}",
+                name, relative_offset, new_value
+            );
+            unsafe { *(relative_offset as *mut usize) = new_value };
+        }
+        _ => {
+            panic!("Unknown relocation type: {}", rela_dyn.r_type);
+        }
+    }
+    Some(())
+}
+
+/// 修改 `Lib` 库中的 指定函数 的入口地址
+///
+/// # 参数
+/// * `elf` - `LIB` 的 `ElfBytes`
+/// * `lib_start` - `LIB` 在内存中地址
+/// * `new_value` - 需要修改的特殊函数函数入口地址
+/// * `name` - 需要修改的特殊函数函数的名字
+pub fn modify_lib_plt(
+    elf: &ElfBytes<LittleEndian>,
+    lib_start: usize,
+    new_value: usize,
+    name: &str,
+) -> Option<()> {
     let (dynsym_table, dynstr_table) = elf
         .dynamic_symbol_table()
         .expect("Failed to parse dynamic symbol table")
@@ -316,38 +392,34 @@ pub fn modify_lib_main(elf: &ElfBytes<LittleEndian>, lib_start: usize, main_entr
         .section_data_as_relas(&rela_plt_shdr)
         .expect("Failed to parse .rela.plt section");
 
-    let run_code_entry_name = "main";
+    let rela_plt = rela_plts.into_iter().find(|rela_plt| {
+        let sym = dynsym_table.get(rela_plt.r_sym as usize).expect(&format!(
+            "Failed to get symbol for index: {}",
+            rela_plt.r_sym
+        ));
+        let rela_name = dynstr_table.get(sym.st_name as usize).expect(&format!(
+            "Failed to get symbol name for index: {}",
+            sym.st_name
+        ));
 
-    let rela_plt = rela_plts
-        .into_iter()
-        .find(|rela_plt| {
-            let sym = dynsym_table.get(rela_plt.r_sym as usize).expect(&format!(
-                "Failed to get symbol for index: {}",
-                rela_plt.r_sym
-            ));
-            let rela_name = dynstr_table.get(sym.st_name as usize).expect(&format!(
-                "Failed to get symbol name for index: {}",
-                sym.st_name
-            ));
-
-            run_code_entry_name == rela_name
-        })
-        .expect("Failed to find `main` in LIB dynamic symbol table");
+        name == rela_name
+    })?; // 如果找不到，就在这里返回一个None
 
     match rela_plt.r_type {
         // Indicates the symbol associated with a `PLT` entry: `S`
         R_RISCV_JUMP_SLOT => {
             let relative_offset = lib_start + rela_plt.r_offset as usize;
             info!(
-                "[Lib-rela.plt ENTRY] @0x{:x}=0x{:x}",
-                relative_offset, main_entry
+                "[Lib-rela.plt plt:{}] @0x{:x}=0x{:x}",
+                name, relative_offset, new_value
             );
-            unsafe { *(relative_offset as *mut usize) = main_entry };
+            unsafe { *(relative_offset as *mut usize) = new_value };
         }
         _ => {
             panic!("Unknown relocation type: {}", rela_plt.r_type);
         }
     }
+    Some(())
 }
 
 /// 这个是用来修改 `APP` 库的 `PLT` 表格的

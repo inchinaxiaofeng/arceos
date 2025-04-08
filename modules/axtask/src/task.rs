@@ -75,7 +75,6 @@ pub struct TaskInner {
     task_ext: AxTaskExt,
 
     /// TimeStat
-    #[allow(unused)]
     time: UnsafeCell<TimeStat>,
 
     #[cfg(feature = "tls")]
@@ -565,7 +564,21 @@ use core::mem::ManuallyDrop;
 /// A wrapper of [`AxTaskRef`] as the current task.
 ///
 /// It won't change the reference count of the task when created or dropped.
+#[derive(Clone)]
 pub struct CurrentTask(ManuallyDrop<AxTaskRef>);
+
+impl fmt::Debug for CurrentTask {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("CurrentTask")
+            .field("entry", &self.entry)
+            .field("id_name", &self.id_name())
+            .field("state", &self.state())
+            .field("cpumask", &self.cpumask())
+            .field("kernel_stack_bottom", &self.kernel_stack_bottom())
+            .field("kernel_stack_top", &self.kernel_stack_top())
+            .finish()
+    }
+}
 
 impl CurrentTask {
     pub(crate) fn try_get() -> Option<Self> {
@@ -578,7 +591,10 @@ impl CurrentTask {
     }
 
     pub(crate) fn get() -> Self {
-        Self::try_get().expect("current task is uninitialized")
+        info!("Try Get");
+        let ret = Self::try_get();
+        info!("get ptr {:?}", ret);
+        ret.expect("current task is uninitialized")
     }
 
     /// Converts [`CurrentTask`] to [`AxTaskRef`].

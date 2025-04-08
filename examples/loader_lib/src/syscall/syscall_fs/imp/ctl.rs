@@ -21,6 +21,7 @@ use axfs::api::{
     Permissions, create_dir, metadata, remove_dir, remove_file, rename, set_current_dir,
 };
 use axlog::{debug, error, info, warn};
+use axtask::current;
 
 /// 功能:获取当前工作目录；
 /// # Arguments
@@ -743,6 +744,9 @@ pub fn syscall_ioctl(args: [usize; 6]) -> SyscallResult {
     let request = args[1];
     let argp = args[2];
     let process = process_api();
+    info!("try the current");
+    current();
+    info!("pass the current");
     let fd_table = process.fd_manager.fd_table.lock();
     debug!("fd: {}, request: {}, argp: {}", fd, request, argp);
     if fd >= fd_table.len() {

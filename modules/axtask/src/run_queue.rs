@@ -564,7 +564,9 @@ impl AxRunQueue {
 
             CurrentTask::set_current(prev_task, next_task);
 
+            info!("Pass set current");
             (*prev_ctx_ptr).switch_to(&*next_ctx_ptr);
+            info!("Pass switch_to");
 
             // Current it's **next_task** running on this CPU, clear the `prev_task`'s `on_cpu` field
             // to indicate that it has finished its scheduling process and no longer running on this CPU.

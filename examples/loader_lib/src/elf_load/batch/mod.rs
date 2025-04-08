@@ -12,7 +12,7 @@ use elf::{
     endian::LittleEndian,
 };
 use head_decoder::head_decoded;
-use load::{load_app_dyn, load_exec, load_lib, modify_lib_main};
+use load::{load_app_dyn, load_exec, load_lib, modify_lib_dyn, modify_lib_plt};
 use script_decoder::script_decoded;
 
 use crate::{
@@ -56,7 +56,14 @@ pub fn run_loop() {
             .is_err()
             .then(|| panic!("Failed to verify_elf_header for Lib ELF"));
 
-        let lib_entry = load_lib(lib_elf_slice, lib_code, &lib_elf, LIB_START);
+        let lib_entry = load_lib(
+            lib_elf_slice,
+            lib_code,
+            &lib_elf,
+            LIB_START,
+            "__entry",
+            "main",
+        );
 
         info!(
             "Load lib done, entry 0x{:x} size 0x{:x}",
@@ -115,7 +122,7 @@ pub fn run_loop() {
                     .as_ref()
                     .expect("ERROR: A dynamic app loaded but cant find lib.");
                 // 动态连接加载
-                let main_entry = load_app_dyn(
+                let (app_entry, _main_entry) = load_app_dyn(
                     app_elf_slice,
                     &app_elf,
                     app_code,
@@ -125,7 +132,13 @@ pub fn run_loop() {
                     LIB_START,
                     "main",
                 );
-                modify_lib_main(&lib.elf, LIB_START, main_entry);
+                modify_lib_plt(&lib.elf, LIB_START, app_entry, "__entry")
+                    .is_none()
+                    .then(|| {
+                        modify_lib_dyn(&lib.elf, LIB_START, app_entry, "__entry")
+                            .expect("Failed to modify in lib")
+                    });
+                // modify_lib_func_entry(&lib.elf, LIB_START, main_entry, "main");
 
                 lib.entry // ✅ 这里还是可用
             }

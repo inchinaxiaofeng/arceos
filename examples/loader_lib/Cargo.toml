@@ -23,7 +23,7 @@ paging = ["alloc", "axhal/paging"]
 
 ### 三级可选特性（只能包含依赖，不应该包含其他特性）
 
-uni_process = [] # 假装支持
+uni_process = ["axhal/tls", "axhal/fp_simd"] # 假装支持
 multi_process = ["axruntime/multitask", "axruntime/paging", "axhal/pseudo_multi_process"] # 开启这个选项后，将会实质上支持（伪）多进程。`WIP`
 signal = [] # 开启这个选项后，将会实质上支持signal模式。 `WIP`
 placeholder_signal = [] # 假装支持

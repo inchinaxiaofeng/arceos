@@ -238,7 +238,7 @@ extern unsigned long volatile abi_entry;
 #include <stdarg.h>
 extern int main(int, char **);
 
-void __libc_start_main(long *p);
+int __libc_start_main(int (*)(), int, char **, void (*)(), void (*)(), void (*)());
 // void mock_start_main(long *p);
 void terminate();
 
