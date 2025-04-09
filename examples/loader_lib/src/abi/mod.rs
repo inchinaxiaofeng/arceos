@@ -595,6 +595,13 @@ fn abi_terminate() -> ! {
 /// `SYS_CHECKPOINT: 4`
 #[unsafe(no_mangle)]
 fn abi_checkpoint() {
+    let ptr_loc = &axhal::cpu::CURRENT_TASK_PTR as *const _ as usize;
+    info!(
+        "CURRENT_TASK_PTR is at 0x{:x}, value = 0x{:x}",
+        ptr_loc,
+        &axhal::cpu::CURRENT_TASK_PTR.read_current()
+    );
+
     info!("[ABI: SYS CTL] abi_checkpoint");
 }
 

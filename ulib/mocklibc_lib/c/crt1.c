@@ -14,6 +14,8 @@ __attribute__((visibility("hidden"))) void _start(long *p)
 {
     asm volatile("mv %0, a7" : "=r"(abi_entry));
 
+    printf("Test\n");
+
     pthread_t musl_start;
     pthread_create(&musl_start, NULL, __entry, p);
     pthread_join(musl_start, NULL);
@@ -25,7 +27,7 @@ __attribute__((visibility("hidden"))) void _start(long *p)
 int __libc_start_main(int (*main)(), int argc, char **argv, void (*_init)(), void (*_fini)(),
                       void (*rtld_fini)())
 {
-    printf("main entry %p, argc @%p=%d, argv @%p\n", main, &argc, argc, argv);
+    CHECKPOINT
     main(argc, argv, environ);
 }
 

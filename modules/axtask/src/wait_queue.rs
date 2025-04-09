@@ -77,6 +77,7 @@ impl WaitQueue {
     /// notifies it.
     pub fn wait(&self) {
         current_run_queue::<NoPreemptIrqSave>().blocked_resched(self.queue.lock());
+        info!("CHECKPOINT");
         self.cancel_events(crate::current(), false);
     }
 
@@ -89,6 +90,7 @@ impl WaitQueue {
     where
         F: Fn() -> bool,
     {
+        info!("CHECKPOINT");
         let curr = crate::current();
         loop {
             let mut rq = current_run_queue::<NoPreemptIrqSave>();
@@ -107,6 +109,7 @@ impl WaitQueue {
     #[cfg(feature = "irq")]
     pub fn wait_timeout(&self, dur: core::time::Duration) -> bool {
         let mut rq = current_run_queue::<NoPreemptIrqSave>();
+        info!("CHECKPOINT");
         let curr = crate::current();
         let deadline = axhal::time::wall_time() + dur;
         debug!(
@@ -135,6 +138,7 @@ impl WaitQueue {
     where
         F: Fn() -> bool,
     {
+        info!("CHECKPOINT");
         let curr = crate::current();
         let deadline = axhal::time::wall_time() + dur;
         debug!(

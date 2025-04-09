@@ -17,6 +17,7 @@ fn test_sched_fifo() {
     for i in 0..NUM_TASKS {
         axtask::spawn_raw(
             move || {
+                info!("CHECKPOINT");
                 println!("sched_fifo: Hello, task {}! ({})", i, current().id_name());
                 axtask::yield_now();
                 let order = FINISHED_TASKS.fetch_add(1, Ordering::Relaxed);

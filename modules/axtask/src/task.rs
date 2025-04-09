@@ -1,4 +1,5 @@
 use alloc::{boxed::Box, string::String, sync::Arc};
+use axhal::cpu::this_cpu_id;
 use core::ops::Deref;
 use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU8, AtomicU64, Ordering};
 use core::{alloc::Layout, cell::UnsafeCell, fmt, ptr::NonNull};
@@ -472,6 +473,7 @@ impl TaskInner {
     #[cfg(feature = "preempt")]
     fn current_check_preempt_pending() {
         use kernel_guard::NoPreemptIrqSave;
+        info!("CHECKPOINT");
         let curr = crate::current();
         if curr.need_resched.load(Ordering::Acquire) && curr.can_preempt(0) {
             // Note: if we want to print log msg during `preempt_resched`, we have to
@@ -592,8 +594,14 @@ impl CurrentTask {
 
     pub(crate) fn get() -> Self {
         info!("Try Get");
+        let ptr_loc = &axhal::cpu::CURRENT_TASK_PTR as *const _ as usize;
+        info!(
+            "CURRENT_TASK_PTR is at 0x{:x}, value = 0x{:x}",
+            ptr_loc,
+            &axhal::cpu::CURRENT_TASK_PTR.read_current()
+        );
         let ret = Self::try_get();
-        info!("get ptr {:?}", ret);
+        info!("cpu id {}, get ptr {:?}", this_cpu_id(), ret);
         ret.expect("current task is uninitialized")
     }
 
@@ -647,8 +655,20 @@ extern "C" fn task_entry() -> ! {
     #[cfg(feature = "irq")]
     axhal::arch::enable_irqs();
     let task = crate::current();
+    info!("task {:?}", task);
     if let Some(entry) = task.entry {
-        unsafe { Box::from_raw(entry)() };
+        let boxed: Box<dyn FnOnce()> = unsafe { Box::from_raw(entry) };
+        info!("Before running entry function>>>");
+        let ptr_loc = &axhal::cpu::CURRENT_TASK_PTR as *const _ as usize;
+        info!(
+            "CURRENT_TASK_PTR is at 0x{:x}, value = 0x{:x}",
+            ptr_loc,
+            &axhal::cpu::CURRENT_TASK_PTR.read_current()
+        );
+
+        boxed();
+        info!("After running entry function");
+        // unsafe { Box::from_raw(entry)() };
     }
     crate::exit(0);
 }

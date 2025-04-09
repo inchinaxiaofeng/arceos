@@ -68,6 +68,7 @@ const ARRAY_REPEAT_VALUE: MaybeUninit<&'static mut AxRunQueue> = MaybeUninit::un
 #[inline(always)]
 pub(crate) fn current_run_queue<G: BaseGuard>() -> CurrentRunQueueRef<'static, G> {
     let irq_state = G::acquire();
+    info!("CHECKPOINT");
     CurrentRunQueueRef {
         inner: unsafe { RUN_QUEUE.current_ref_mut_raw() },
         current_task: crate::current(),
@@ -261,6 +262,7 @@ impl<G: BaseGuard> AxRunQueueRef<'_, G> {
             // Note: when the task is unblocked on another CPU's run queue,
             // we just ingiore the `resched` flag.
             if resched && cpu_id == this_cpu_id() {
+                info!("CHECKPOINT");
                 #[cfg(feature = "preempt")]
                 crate::current().set_preempt_pending(true);
             }
@@ -310,6 +312,7 @@ impl<G: BaseGuard> CurrentRunQueueRef<'_, G> {
         // but, do not put current task to the scheduler of this run queue.
         curr.set_state(TaskState::Ready);
 
+        info!("CHECKPOINT");
         // Call `switch_to` to reschedule to the migration task that performs the migration directly.
         self.inner.switch_to(crate::current(), migration_task);
     }
@@ -518,6 +521,7 @@ impl AxRunQueue {
             next.id_name(),
             next.state()
         );
+        info!("CHECKPOINT");
         self.switch_to(crate::current(), next);
     }
 
@@ -564,9 +568,7 @@ impl AxRunQueue {
 
             CurrentTask::set_current(prev_task, next_task);
 
-            info!("Pass set current");
             (*prev_ctx_ptr).switch_to(&*next_ctx_ptr);
-            info!("Pass switch_to");
 
             // Current it's **next_task** running on this CPU, clear the `prev_task`'s `on_cpu` field
             // to indicate that it has finished its scheduling process and no longer running on this CPU.
